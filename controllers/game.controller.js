@@ -140,8 +140,29 @@ const gameStream = (req, res, next) => {
  * Action that allows a player to join a new game
  * Only allow user to join if game is still active
  */
-const join = () => {
-    throw new Error("Not Implemented Exception");
+const join = (req, res, next) => {
+    const gameId = req.params.id
+    const userId = req.user.id 
+
+    //to check if the user that tries to join is different from the one who creates the game.
+
+    generateBoardWithTiles(gameId, userId)
+    .then(board2 => {
+        console.log("New Board: ", board2)
+
+        Game.findByPk(gameId)
+            .then(gameJoined => {
+                gameJoined
+                    .update({gameState: 1})
+                    .then(response => res
+                        .status(201)
+                        .send({ gameId })
+                    )
+                    .catch(next)
+            })
+            .catch(next)
+    })
+    .catch(next);
 }
 
 // Export auth controller functions
