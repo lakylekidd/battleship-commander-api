@@ -7,19 +7,19 @@ const gameController = require('./../controllers/game.controller');
 const router = new Router();
 
 // Returns a list of available games a user can join
-router.get('/games', auth, gameController.getAvailableGames);
+router.get('/', auth, gameController.getAvailableGames);
 
 // Creates a new game session
-router.post('/games', auth, gameController.createNewGameSession);
+router.post('/', auth, gameController.createNewGameSession);
 
 // Accepts actions from a player
-router.post('/games/:id', auth, gameController.fire);
+router.post('/:id', auth, gameController.fire);
 
 // The stream of the selected game. TODO: Check if POST or GET
-router.get('/games/:id/stream', auth, gameController.gameStream);
+router.get('/:id/stream', auth, gameController.gameStream);
 
 // Allows user to join the specified game
-router.get('/games/:id/join', auth, gameController.join);
+router.get('/:id/join', auth, gameController.join);
 
 // Export the router
 module.exports = router;
