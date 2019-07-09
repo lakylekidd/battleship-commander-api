@@ -1,5 +1,4 @@
 // Import required modules
-const jwt = require('./../helpers/jwt');
 const User = require('./../models/user.model');
 const Game = require('./../models/game.model');
 
@@ -20,14 +19,20 @@ const difficulties = {
  * games (gameState === 0)
  */
 const getAvailableGames = (req, res, next) => {
-    throw new Error("Not Implemented Exception");
+    // Get a list of all games where status is new
+    Game.findAll({ where: { gameState: 0 } })
+        .then(games => {
+            // Return the list of games
+            return res.status(200).send({
+                total: games.length,
+                games: games
+            })
+        })
+        .catch(next)
 }
 /**
  * Action that creates a new game session
  * and sets requesting user as the owner
- * 
- * "jwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjcsInVzZXJuYW1lIjoicGVkcm8iLCJpYXQiOjE1NjI2Nzk0NTAsImV4cCI6MTU2MjY4NjY1MH0.gGpeFAC6o-d-5s4Y-r3fZh6snLBbOiwWpkdsW6h8I1I"
- * Authorization:"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjcsInVzZXJuYW1lIjoicGVkcm8iLCJpYXQiOjE1NjI2Nzk0NTAsImV4cCI6MTU2MjY4NjY1MH0.gGpeFAC6o-d-5s4Y-r3fZh6snLBbOiwWpkdsW6h8I1I"
  */
 const createNewGameSession = (req, res, next) => {
     const newGame = {
