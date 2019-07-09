@@ -3,6 +3,7 @@ const User = require('./../models/user.model');
 const Game = require('./../models/game.model');
 const Board = require('./../models/board.model');
 const Tile = require('./../models/tile.model');
+const Sse = require('json-sse')
 
 /// Constant Game States
 const gameStates = {
@@ -65,16 +66,6 @@ const generateTilesForBoard = (boardId) => {
 }
 
 /**
- * 1. User calls steam with game id
- * 2. Retrieve game id and user id
- * 3. Retrieve game based on game id include boards and tiles
- * 4. Stringify the whole object and return it
- * 
- */
-
-
-
-/**
  * Action that returns a list of all available
  * games (gameState === 0)
  */
@@ -125,12 +116,25 @@ const createNewGameSession = (req, res, next) => {
 const fire = () => {
     throw new Error("Not Implemented Exception");
 }
+
+const stream = new Sse(null)
 /**
  * Action that allows a player to subscribe to the game stream
  * just like the chat app sends all new messages to everybody
  */
-const gameStream = () => {
-    throw new Error("Not Implemented Exception");
+const gameStream = (req, res, next) => {
+    const gameId = req.params.id
+
+    Game.findByPk(gameId, {include: [{all: true, nested: true}]})
+        .then(response => {
+            stream.init(req, res)
+            const json = JSON.stringify(response)
+            //Update the inital state of Sse
+            stream.updateInit(json)
+            //Notify the clients about the new data
+            stream.send(json)            
+        })
+        .catch(next)
 }
 /**
  * Action that allows a player to join a new game
