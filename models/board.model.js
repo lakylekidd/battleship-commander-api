@@ -3,8 +3,9 @@ const Sequelize = require('sequelize');
 const db = require('./../../db');
 const Game = require('./game.model');
 const User = require('./user.model');
+const Tile = require('./Tile.model');
 
-// Define a game model
+// Define a board model
 const Board = db.define('board', {
     ready: {
         type: Sequelize.BOOLEAN,
@@ -23,6 +24,7 @@ const Board = db.define('board', {
 // Define Relationships
 Board.belongsTo(Game);
 Board.belongsTo(User);
+Board.hasMany(Tile);
 
 
 // Export the model
