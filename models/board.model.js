@@ -1,9 +1,7 @@
 // Import required modules
 const Sequelize = require('sequelize');
-const db = require('./../../db');
-const Game = require('./game.model');
-const User = require('./user.model');
-const Tile = require('./Tile.model');
+const db = require('./../db');
+const Tile = require('./tile.model');
 
 // Define a board model
 const Board = db.define('board', {

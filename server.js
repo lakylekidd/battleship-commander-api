@@ -6,6 +6,12 @@ const config = require('./config');
 // Create the server
 const server = http.createServer(app);
 
+// Import the models
+const Board = require('./models/board.model');
+const Game = require('./models/game.model');
+const Tile = require('./models/tile.model');
+const User = require('./models/user.model');
+
 // Start listening at specified port
 server.listen(config.port, (e) => {
     // Check if there are any errors
