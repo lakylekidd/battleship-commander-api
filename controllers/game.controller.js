@@ -1,13 +1,22 @@
 // Import required modules
-const jwt = require('./../helpers/jwt');
 const User = require('./../models/user.model');
+const Game = require('./../models/game.model');
 
 /**
  * Action that returns a list of all available
  * games (gameState === 0)
  */
 const getAvailableGames = (req, res, next) => {
-    throw new Error("Not Implemented Exception");
+    // Get a list of all games where status is new
+    Game.findAll({ where: { gameState: 0 } })
+        .then(games => {
+            // Return the list of games
+            return res.status(200).send({
+                total: games.length,
+                games: games
+            })
+        })
+        .catch(next)
 }
 /**
  * Action that creates a new game session
