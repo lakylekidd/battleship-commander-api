@@ -2,7 +2,7 @@
 const Sequelize = require('sequelize');
 const db = require('./../../db');
 const User = require('./user.model');
-
+const Board = require('./board.model');
 
 // Define a game model
 const Game = db.define('game', {
@@ -26,6 +26,7 @@ const Game = db.define('game', {
 
 // Define Relationships
 Game.belongsTo(User);
+Game.hasMany(Board);
 
 // Export the model
 module.exports = Game;
