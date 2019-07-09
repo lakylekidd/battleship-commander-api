@@ -1,6 +1,8 @@
 // Import required modules
 const User = require('./../models/user.model');
 const Game = require('./../models/game.model');
+const Board = require('./../models/board.model');
+const Tile = require('./../models/tile.model');
 
 const gameStates = {
     new: 0,
@@ -13,6 +15,54 @@ const difficulties = {
     medium: 1,
     hard: 2
 }
+// Generate a board with tiles for specified game and user id
+const generateBoardWithTiles = (gameId, userId) => {
+    // Game Created, Create Board
+    const board = {
+        ready: false,
+        winner: false,
+        userId: userId,
+        gameId: gameId
+    }
+    // Return the promise
+    return Board.create(board)
+        .then(createdBoard => {
+            // Generate the tiles
+            const tiles = generateTilesForBoard(createdBoard.id);
+            return Tile.bulkCreate(tiles);
+        });
+}
+
+// Function that generates the tiles for the specified board
+const generateTilesForBoard = (boardId) => {
+    // Define how big the board will be
+    const size = 8;
+
+    // Generate the tiles based on the difficulty level
+    let tiles = [];
+    let index = 0;
+    for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+            // Create a new tile at this index
+            const tile = {
+                index: index,
+                posX: x,
+                posY: y,
+                occupied: false,
+                targeted: false,
+                boardId: boardId
+            };
+            // Push tile to the array
+            tiles.push(tile);
+            // Increment the index
+            index++;
+        }
+    }
+    // return the tiles
+    return tiles;
+}
+
+
 
 /**
  * Action that returns a list of all available
@@ -35,17 +85,26 @@ const getAvailableGames = (req, res, next) => {
  * and sets requesting user as the owner
  */
 const createNewGameSession = (req, res, next) => {
+    // Create the new game
     const newGame = {
         startDate: new Date(),
         difficulty: difficulties.easy,
         gameState: gameStates.new,
         userId: req.user.id
     }
-
+    // Create the game
     Game
         .create(newGame)
         .then(createdGame => {
-            res.status(201).send(createdGame)
+            // Game Created, Create Board
+            generateBoardWithTiles(createdGame.id, req.user.id)
+                .then(_ => {
+                    console.log("OBJ CREATED: ", createdGame.id)
+                    return res.status(201).send({
+                        gameId: createdGame.id
+                    })
+                })
+                .catch(next);
         })
         .catch(err => next(err))
 }
