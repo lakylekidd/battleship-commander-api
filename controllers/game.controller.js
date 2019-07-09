@@ -4,17 +4,19 @@ const Game = require('./../models/game.model');
 const Board = require('./../models/board.model');
 const Tile = require('./../models/tile.model');
 
+/// Constant Game States
 const gameStates = {
     new: 0,
     active: 1,
     closed: 2
 }
-
+/// Constant Difficulty Levels
 const difficulties = {
     easy: 0,
     medium: 1,
     hard: 2
 }
+
 // Generate a board with tiles for specified game and user id
 const generateBoardWithTiles = (gameId, userId) => {
     // Game Created, Create Board
@@ -61,6 +63,14 @@ const generateTilesForBoard = (boardId) => {
     // return the tiles
     return tiles;
 }
+
+/**
+ * 1. User calls steam with game id
+ * 2. Retrieve game id and user id
+ * 3. Retrieve game based on game id include boards and tiles
+ * 4. Stringify the whole object and return it
+ * 
+ */
 
 
 
