@@ -31,9 +31,5 @@ const Tile = db.define('tile', {
     }
 );
 
-// Define Relationships
-Tile.belongsTo(Board);
-
-
 // Export the model
 module.exports = Tile;

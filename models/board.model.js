@@ -22,8 +22,6 @@ const Board = db.define('board', {
 );
 
 // Define Relationships
-Board.belongsTo(Game);
-Board.belongsTo(User);
 Board.hasMany(Tile);
 
 
