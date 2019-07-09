@@ -24,7 +24,7 @@ const fire = () => {
     throw new Error("Not Implemented Exception");
 }
 /**
- * Action that allows subscriptions for the game stream
+ * Action that allows a player to subscribe to the game stream
  * just like the chat app sends all new messages to everybody
  */
 const gameStream = () => {
