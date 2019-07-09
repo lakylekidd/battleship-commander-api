@@ -2,6 +2,18 @@
 const User = require('./../models/user.model');
 const Game = require('./../models/game.model');
 
+const gameStates = {
+    new: 0,
+    active: 1,
+    closed: 2
+}
+
+const difficulties = {
+    easy: 0,
+    medium: 1,
+    hard: 2
+}
+
 /**
  * Action that returns a list of all available
  * games (gameState === 0)
@@ -22,8 +34,20 @@ const getAvailableGames = (req, res, next) => {
  * Action that creates a new game session
  * and sets requesting user as the owner
  */
-const createNewGameSession = () => {
-    throw new Error("Not Implemented Exception");
+const createNewGameSession = (req, res, next) => {
+    const newGame = {
+        startDate: new Date(),
+        difficulty: difficulties.easy,
+        gameState: gameStates.new,
+        userId: req.user.id
+    }
+
+    Game
+        .create(newGame)
+        .then(createdGame => {
+            res.status(201).send(createdGame)
+        })
+        .catch(err => next(err))
 }
 /**
  * Action that performs a fire event of a user
