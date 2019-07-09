@@ -46,7 +46,7 @@ const loginOrRegister = (req, res, next) => {
                 // Return a JWT token with the user id and username
                 return res.status(200).send({
                     // Generate the token and return it
-                    jwt: generateToken(u.id, username)
+                    jwt: generateToken(user.id, username)
                 });
             }
         })
