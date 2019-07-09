@@ -2,6 +2,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const jsonParser = bodyParser.json();
+const cors = require('cors');
 
 // Import routes
 const userRoutes = require('./routes/user.routes');
@@ -12,6 +13,7 @@ const gameRoutes = require('./routes/game.routes');
 const app = express();
 
 // Apply middlewares
+app.use(cors());
 app.use(jsonParser);
 
 // Forward requests to specified routes
