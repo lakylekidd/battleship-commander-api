@@ -1,6 +1,19 @@
 // Import required modules
 const jwt = require('./../helpers/jwt');
 const User = require('./../models/user.model');
+const Game = require('./../models/game.model');
+
+const gameStates = {
+    new: 0,
+    active: 1,
+    closed: 2
+}
+
+const difficulties = {
+    easy: 0,
+    medium: 1,
+    hard: 2
+}
 
 /**
  * Action that returns a list of all available
@@ -12,9 +25,24 @@ const getAvailableGames = (req, res, next) => {
 /**
  * Action that creates a new game session
  * and sets requesting user as the owner
+ * 
+ * "jwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjcsInVzZXJuYW1lIjoicGVkcm8iLCJpYXQiOjE1NjI2Nzk0NTAsImV4cCI6MTU2MjY4NjY1MH0.gGpeFAC6o-d-5s4Y-r3fZh6snLBbOiwWpkdsW6h8I1I"
+ * Authorization:"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjcsInVzZXJuYW1lIjoicGVkcm8iLCJpYXQiOjE1NjI2Nzk0NTAsImV4cCI6MTU2MjY4NjY1MH0.gGpeFAC6o-d-5s4Y-r3fZh6snLBbOiwWpkdsW6h8I1I"
  */
-const createNewGameSession = () => {
-    throw new Error("Not Implemented Exception");
+const createNewGameSession = (req, res, next) => {
+    const newGame = {
+        startDate: new Date(),
+        difficulty: difficulties.easy,
+        gameState: gameStates.new,
+        userId: req.user.id
+    }
+
+    Game
+        .create(newGame)
+        .then(createdGame => {
+            res.status(201).send(createdGame)
+        })
+        .catch(err => next(err))
 }
 /**
  * Action that performs a fire event of a user
