@@ -111,41 +111,50 @@ const createNewGameSession = (req, res, next) => {
     // Get a list of new or active games and check if any of them contain
     // a user id equal to the user id of the user attempting to create a new game
     Game.findAll({
+        include: [{
+            model: Board,
+            where: { userId: req.user.id }
+        }],
         where: {
-            [Op.or]: [{ gameState: gameStates.new }, { gameState: gameStates.active }],
-            [Op.and]: { "boards.userId": req.user.id }
+            gameState: {
+                [Op.or]: [gameStates.new, gameStates.active]
+            }
         }
     })
         .then(result => {
             // Check if any games are returned
-            if (result.length > 0) return res.status(400).send({
-                message: "Please specify a new username. This username is already in use!"
-            })
+            // If there are, that means the user is already participating
+            // in a new or active game so deny the creation
+            if (result.length > 0) {
+                return res.status(400).send({
+                    message: "Please specify a new username. This username is already in use!"
+                })
+            } else {
+                // Otherwise user is not currently participating anywhere
+                // Create the new game
+                const newGame = {
+                    startDate: new Date(),
+                    difficulty: difficulties.easy,
+                    gameState: gameStates.new,
+                    userId: req.user.id
+                }
+                // Create the game
+                Game
+                    .create(newGame)
+                    .then(createdGame => {
+                        // Game Created, Create Board
+                        generateBoardWithTiles(createdGame.id, req.user.id)
+                            .then(_ => {
+                                return res.status(201).send({
+                                    gameId: createdGame.id
+                                })
+                            })
+                            .catch(next);
+                    })
+                    .catch(err => next(err))
+            }
         })
         .catch(next);
-
-
-    // Create the new game
-    const newGame = {
-        startDate: new Date(),
-        difficulty: difficulties.easy,
-        gameState: gameStates.new,
-        userId: req.user.id
-    }
-    // Create the game
-    Game
-        .create(newGame)
-        .then(createdGame => {
-            // Game Created, Create Board
-            generateBoardWithTiles(createdGame.id, req.user.id)
-                .then(_ => {
-                    return res.status(201).send({
-                        gameId: createdGame.id
-                    })
-                })
-                .catch(next);
-        })
-        .catch(err => next(err))
 }
 /**
  * Action that performs a fire event of a user
