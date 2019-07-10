@@ -145,6 +145,7 @@ const createNewGameSession = (req, res, next) => {
                         // Game Created, Create Board
                         generateBoardWithTiles(createdGame.id, req.user.id)
                             .then(_ => {
+                                console.log("New Game Created: ", createdGame.id)
                                 return res.status(201).send({
                                     gameId: createdGame.id
                                 })
@@ -170,29 +171,33 @@ const fire = (req, res, next) => {
         .findByPk(boardId)
         .then(board => {
             //Check if Im not the owner of that board
-            if(board.userId !== thisUser) {
+            if (board.userId !== thisUser) {
                 //Check If there is a board in that game where I am part of-
-                Board.findOne({where: {
-                    gameId: board.gameId,
-                    userId: thisUser                
-                    }})
+                Board.findOne({
+                    where: {
+                        gameId: board.gameId,
+                        userId: thisUser
+                    }
+                })
                     .then(result => {
                         if (result) {
                             Tile
-                            .findOne({where: {
-                                boardId: boardId,
-                                index: tileIdx
-                            }})
-                            .then(tile => {
-                                tile.update({targeted: true})
-                                res.send({message: "Tile Targeted!"})
-                            })
+                                .findOne({
+                                    where: {
+                                        boardId: boardId,
+                                        index: tileIdx
+                                    }
+                                })
+                                .then(tile => {
+                                    tile.update({ targeted: true })
+                                    res.send({ message: "Tile Targeted!" })
+                                })
                         }
                     })
                     .catch(next)
             }
         })
-        .catch(next)               
+        .catch(next)
 }
 
 const stream = new Sse(null)
@@ -201,16 +206,20 @@ const stream = new Sse(null)
  * just like the chat app sends all new messages to everybody
  */
 const gameStream = (req, res, next) => {
+
     const gameId = req.params.id
 
     Game.findByPk(gameId, { include: [{ all: true, nested: true }] })
         .then(response => {
+
+            console.log(response);
+
             stream.init(req, res)
             const json = JSON.stringify(response)
             //Update the inital state of Sse
             stream.updateInit(json)
             //Notify the clients about the new data
-            stream.send(json)
+            stream.send(json);
         })
         .catch(next)
 }
