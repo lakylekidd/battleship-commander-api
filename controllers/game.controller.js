@@ -65,6 +65,25 @@ const generateTilesForBoard = (boardId) => {
     return tiles;
 }
 
+//Create Board for User2
+const createBoard2 = (gameId, userId) => {
+    generateBoardWithTiles(gameId, userId)
+    .then(board2 => {          
+        Game.findByPk(gameId)
+            .then(gameJoined => {
+                gameJoined
+                    .update({gameState: 1})
+                    .then(response => res
+                        .status(201)
+                        .send({ gameId })
+                    )
+                    .catch(next)
+            })
+            .catch(next)
+    })
+    .catch(next);
+}
+
 /**
  * Action that returns a list of all available
  * games (gameState === 0)
@@ -144,25 +163,16 @@ const join = (req, res, next) => {
     const gameId = req.params.id
     const userId = req.user.id 
 
-    //to check if the user that tries to join is different from the one who creates the game.
-
-    generateBoardWithTiles(gameId, userId)
-    .then(board2 => {
-        console.log("New Board: ", board2)
-
-        Game.findByPk(gameId)
-            .then(gameJoined => {
-                gameJoined
-                    .update({gameState: 1})
-                    .then(response => res
-                        .status(201)
-                        .send({ gameId })
-                    )
-                    .catch(next)
-            })
-            .catch(next)
-    })
-    .catch(next);
+    //Check if the user that tries to join is different from the one who creates the game.
+    Game.findOne(gameId)
+        .then(game => {
+            if(userId !== game.userId){
+                createBoard2(gameId, userId)
+            } else {
+                res.send({message: 'You are trying to get in the same game you created, Please choose a new one.'})
+            }
+        })
+        .catch(next)
 }
 
 // Export auth controller functions
