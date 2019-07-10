@@ -13,7 +13,7 @@ router.get('/', auth, gameController.getAvailableGames);
 router.post('/', auth, gameController.createNewGameSession);
 
 // Accepts actions from a player
-router.post('/:id', gameController.fire);
+router.post('/:id', auth, gameController.fire);
 
 // The stream of the selected game. TODO: Check if POST or GET
 router.get('/:id/stream', auth, gameController.gameStream);
