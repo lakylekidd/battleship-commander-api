@@ -1,4 +1,6 @@
 // Import required modules
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 const User = require('./../models/user.model');
 const Game = require('./../models/game.model');
 const Board = require('./../models/board.model');
@@ -68,20 +70,20 @@ const generateTilesForBoard = (boardId) => {
 //Create Board for User2
 const createBoard2 = (gameId, userId) => {
     generateBoardWithTiles(gameId, userId)
-    .then(board2 => {          
-        Game.findByPk(gameId)
-            .then(gameJoined => {
-                gameJoined
-                    .update({gameState: 1})
-                    .then(response => res
-                        .status(201)
-                        .send({ gameId })
-                    )
-                    .catch(next)
-            })
-            .catch(next)
-    })
-    .catch(next);
+        .then(board2 => {
+            Game.findByPk(gameId)
+                .then(gameJoined => {
+                    gameJoined
+                        .update({ gameState: 1 })
+                        .then(response => res
+                            .status(201)
+                            .send({ gameId })
+                        )
+                        .catch(next)
+                })
+                .catch(next)
+        })
+        .catch(next);
 }
 
 /**
@@ -105,6 +107,24 @@ const getAvailableGames = (req, res, next) => {
  * and sets requesting user as the owner
  */
 const createNewGameSession = (req, res, next) => {
+    // Check if user is already used in another new or active game
+    // Get a list of new or active games and check if any of them contain
+    // a user id equal to the user id of the user attempting to create a new game
+    Game.findAll({
+        where: {
+            [Op.or]: [{ gameState: gameStates.new }, { gameState: gameStates.active }],
+            [Op.and]: { "boards.userId": req.user.id }
+        }
+    })
+        .then(result => {
+            // Check if any games are returned
+            if (result.length > 0) return res.status(400).send({
+                message: "Please specify a new username. This username is already in use!"
+            })
+        })
+        .catch(next);
+
+
     // Create the new game
     const newGame = {
         startDate: new Date(),
@@ -119,7 +139,6 @@ const createNewGameSession = (req, res, next) => {
             // Game Created, Create Board
             generateBoardWithTiles(createdGame.id, req.user.id)
                 .then(_ => {
-                    console.log("OBJ CREATED: ", createdGame.id)
                     return res.status(201).send({
                         gameId: createdGame.id
                     })
@@ -144,14 +163,14 @@ const stream = new Sse(null)
 const gameStream = (req, res, next) => {
     const gameId = req.params.id
 
-    Game.findByPk(gameId, {include: [{all: true, nested: true}]})
+    Game.findByPk(gameId, { include: [{ all: true, nested: true }] })
         .then(response => {
             stream.init(req, res)
             const json = JSON.stringify(response)
             //Update the inital state of Sse
             stream.updateInit(json)
             //Notify the clients about the new data
-            stream.send(json)            
+            stream.send(json)
         })
         .catch(next)
 }
@@ -161,15 +180,15 @@ const gameStream = (req, res, next) => {
  */
 const join = (req, res, next) => {
     const gameId = req.params.id
-    const userId = req.user.id 
+    const userId = req.user.id
 
     //Check if the user that tries to join is different from the one who creates the game.
     Game.findOne(gameId)
         .then(game => {
-            if(userId !== game.userId){
+            if (userId !== game.userId) {
                 createBoard2(gameId, userId)
             } else {
-                res.send({message: 'You are trying to get in the same game you created, Please choose a new one.'})
+                res.send({ message: 'You are trying to get in the same game you created, Please choose a new one.' })
             }
         })
         .catch(next)
