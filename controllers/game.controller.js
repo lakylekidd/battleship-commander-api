@@ -67,25 +67,6 @@ const generateTilesForBoard = (boardId) => {
     return tiles;
 }
 
-//Create Board for User2
-const createBoard2 = (gameId, userId) => {
-    generateBoardWithTiles(gameId, userId)
-        .then(board2 => {
-            Game.findByPk(gameId)
-                .then(gameJoined => {
-                    gameJoined
-                        .update({ gameState: 1 })
-                        .then(response => res
-                            .status(201)
-                            .send({ gameId })
-                        )
-                        .catch(next)
-                })
-                .catch(next)
-        })
-        .catch(next);
-}
-
 /**
  * Action that returns a list of all available
  * games (gameState === 0)
@@ -228,14 +209,46 @@ const gameStream = (req, res, next) => {
  * Only allow user to join if game is still active
  */
 const join = (req, res, next) => {
+    // Retrieve required variables
     const gameId = req.params.id
     const userId = req.user.id
 
-    //Check if the user that tries to join is different from the one who creates the game.
-    Game.findOne(gameId)
+    // Locate the game based on game ID
+    Game.findByPk(gameId, {
+        where: {
+            gameState: gameStates.new
+        }
+    })
         .then(game => {
+            // Check if game was found
+            if (!game) return res.status(404).send({
+                message: "Cannot join current game! Please select another or create a new one"
+            });
+
+            // Check if the user that tries to join is different from the one who creates the game.
             if (userId !== game.userId) {
-                createBoard2(gameId, userId)
+                // If user is different than the one who
+                // created this game session, generate his board
+                generateBoardWithTiles(gameId, userId)
+                    .then(_ => {
+                        // Second board generated successfully
+                        // Update current game state to active
+                        Game.update(
+                            { gameState: gameStates.active },
+                            {
+                                returning: true,
+                                where: { id: gameId }
+                            }
+                        )
+                            .then((r, u) => {
+                                // Game Updated
+                                return res.status(201).send({
+                                    gameId: game.id
+                                })
+                            })
+                            .catch(next);
+                    })
+                    .catch(next);
             } else {
                 res.send({ message: 'You are trying to get in the same game you created, Please choose a new one.' })
             }
