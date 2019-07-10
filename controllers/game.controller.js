@@ -113,8 +113,39 @@ const createNewGameSession = (req, res, next) => {
  * Action that performs a fire event of a user
  * towards his opponent.
  */
-const fire = () => {
-    throw new Error("Not Implemented Exception");
+const fire = (req, res, next) => {
+    const boardId = req.body.id
+    const tileIdx = req.body.index
+    const thisUser = req.user.id
+
+    // Check if user is part of this game
+    Board
+        .findByPk(boardId)
+        .then(board => {
+            //Check if Im not the owner of that board
+            if(board.userId !== thisUser) {
+                //Check If there is a board in that game where I am part of-
+                Board.findOne({where: {
+                    gameId: board.gameId,
+                    userId: thisUser                
+                    }})
+                    .then(result => {
+                        if (result) {
+                            Tile
+                            .findOne({where: {
+                                boardId: boardId,
+                                index: tileIdx
+                            }})
+                            .then(tile => {
+                                tile.update({targeted: true})
+                                res.send({message: "Tile Targeted!"})
+                            })
+                        }
+                    })
+                    .catch(next)
+            }
+        })
+        .catch(next)               
 }
 
 const stream = new Sse(null)
