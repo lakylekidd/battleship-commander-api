@@ -117,7 +117,8 @@ const createNewGameSession = (req, res, next) => {
                     startDate: new Date(),
                     difficulty: difficulties.easy,
                     gameState: gameStates.new,
-                    userId: req.user.id
+                    userId: req.user.id,
+                    userTurn: req.user.id
                 }
                 // Create the game
                 Game

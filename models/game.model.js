@@ -16,6 +16,10 @@ const Game = db.define('game', {
     gameState: {
         type: Sequelize.INTEGER,
         allowNull: false
+    },
+    userTurn: {
+        type: Sequelize.INTEGER,
+        allowNull: false
     }
 }, {
         tableName: 'games',
