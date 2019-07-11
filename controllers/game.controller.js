@@ -309,13 +309,19 @@ const join = (req, res, next) => {
         })
         .catch(next)
 }
-
+/**
+ * Specifies that the current board is ready to play. 
+ * Fires an event to the stream notifying all the clients.
+ */
 const ready = (req, res, next) => {
     // Retrieve necessary variables
     const { id, boardId } = req.params;
     throw new Error("Not implemented exception");
 }
-
+/**
+ * Places a ship on the specified board and tile 
+ * index of the user at a specified orientation.
+ */
 const placeShip = (req, res, next) => {
     // Retrieve necessary variables
     const { boardId, tileIndex, shipSize, orientation } = req.body;
