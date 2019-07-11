@@ -251,9 +251,9 @@ const gameStream = (req, res, next) => {
                 // Add the streams to the streams object
                 streams[gameId] = newStreamData;
                 // Initialize the stream for this client
-                currentStreamData.stream.init(req, res);
+                newStreamData.stream.init(req, res);
                 // Notify the clients about the new data
-                currentStreamData.stream.send(json);
+                newStreamData.stream.send(json);
             }
         })
         .catch(next);
