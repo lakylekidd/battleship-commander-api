@@ -203,6 +203,7 @@ const gameStream = (req, res, next) => {
             });
             // Await all promises to resolve before sending the stream
             Promise.all(gameObjWithUsernames).then(result => {
+                console.log(result);
                 const json = JSON.stringify(result)
                 //Update the inital state of Sse
                 stream.updateInit(json)
