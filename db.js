@@ -7,7 +7,7 @@ const databaseUrl = config.connectionString;
 const sequelize = new Sequelize(databaseUrl);
 
 // Sync the data (create schemas)
-sequelize.sync()
+sequelize.sync({ force: true })
     .then(r => {
         // Log success
         console.log('Database schema created!');
