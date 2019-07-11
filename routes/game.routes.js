@@ -21,5 +21,8 @@ router.get('/:id/stream', gameController.gameStream);
 // Allows user to join the specified game
 router.get('/:id/join', auth, gameController.join);
 
+// Allows user to exit the specified game
+router.post('/:id/exit', auth, gameController.exitGame);
+
 // Export the router
 module.exports = router;

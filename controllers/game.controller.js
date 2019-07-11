@@ -192,9 +192,6 @@ const gameStream = (req, res, next) => {
 
     Game.findByPk(gameId, { include: [{ all: true, nested: true }] })
         .then(response => {
-
-            console.log(response);
-
             stream.init(req, res)
             const json = JSON.stringify(response)
             //Update the inital state of Sse
@@ -256,5 +253,48 @@ const join = (req, res, next) => {
         .catch(next)
 }
 
+const exitGame = (req, res, next) => {
+    // Retrieve required variables
+    const gameId = req.params.id;
+    const userId = req.user.id;
+
+    // Locate the game
+    Game.update(
+        { gameState: gameStates.closed },
+        {
+            returning: true,
+            where: { id: gameId }
+        }
+    )
+        .then((results, updated) => {
+            // Retrieve the updated game
+            const game = results[0];
+
+            // include message field in game
+            const gameWithMessage = {
+                ...game,
+                message: "User exited the game!",
+                status: 0
+            }
+
+            // Games have been updated, inform users connected to game
+            const json = JSON.stringify(game)
+            //Update the inital state of Sse
+            stream.updateInit(json)
+            //Notify the clients about the new data
+            stream.send(json);
+        })
+        .catch(err => {
+            // There was a server error,
+            // Tell all clients to exit game 
+            const noGameWithMessage = {
+                message: "User exited the game!",
+                status: 0
+            }
+            // Send response
+            return res.status(500).send(noGameWithMessage);
+        })
+}
+
 // Export auth controller functions
-module.exports = { getAvailableGames, createNewGameSession, fire, gameStream, join };
+module.exports = { getAvailableGames, createNewGameSession, fire, gameStream, join, exitGame };
