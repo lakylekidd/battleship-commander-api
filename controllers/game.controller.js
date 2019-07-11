@@ -195,10 +195,15 @@ const gameStream = (req, res, next) => {
             stream.init(req, res)
             // Retrieve usernames for user id's in the boards
             const gameObjWithUsernames = response.boards.map(board => {
+                // First search the username
+                let username = '';
+                User.findByPk(board.userId)
+                    .then(user => { username = user.username })
+                    .catch(err => { username = "unknown" });
                 // Retrieve the username based on user id
                 return {
                     ...board,
-                    username: User.findByPk(board.userId).then(user => user.username).catch(err => "unknown")
+                    username
                 }
             });
             // Await all promises to resolve before sending the stream
