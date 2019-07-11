@@ -198,7 +198,7 @@ const gameStream = (req, res, next) => {
                 // Retrieve the username based on user id
                 return {
                     ...board,
-                    username: await User.findByPk(board.userId).then(user => user.username).catch(err => "unknown")
+                    username: User.findByPk(board.userId).then(user => user.username).catch(err => "unknown")
                 }
             });
             // Await all promises to resolve before sending the stream
