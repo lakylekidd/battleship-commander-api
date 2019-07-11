@@ -174,36 +174,29 @@ const fire = (req, res, next) => {
                         targeted: false
                     }
                 }
-            ).then((result, updated) => {
-                // Retrieve opponent ID
-                const opponentId = board.game.boards.find(board => board.user.id !== thisUser);
+            )
+                .then((result, updated) => {
+                    // Retrieve opponent ID
+                    const opponentId = board.game.boards.find(board => board.user.id !== thisUser);
 
-                // Update the board turn to opponent
-                Game.update(
-                    { userTurn: opponentId },
-                    {
-                        where: { id: gameId }
-                    }
-                )
-                    .then((resul, updated) => {
-                        // Return the streamed game
-                        Game.findByPk(gameId).then(game => {
-                            // Stringify the game
-                            const json = JSON.stringify(game)
-                            // Retrieve the stream of the game
-                            const stream = streams[gameId];
-                            // Update the inital state of Sse
-                            stream.updateInit(json)
-                            // MAYBE UNCOMMENT
-                            // // Notify the clients about the new data
-                            // stream.send(json);
+                    // Update the board turn to opponent
+                    Game.update(
+                        { userTurn: opponentId },
+                        {
+                            where: { id: gameId }
+                        }
+                    )
+                        .then((resul, updated) => {
+                            // Update the stream
+                            updateStream(gameId, req, res, next, true, false);
+                            // Respond success
                             return res.status(200).send({
                                 message: "Target hit!"
                             })
                         })
-                    })
-                    .catch(next);
-            })
+                        .catch(next);
+                })
+                .catch(next);
         })
         .catch(next);
 }
@@ -300,7 +293,7 @@ const ready = (req, res, next) => {
             )
                 .then((result, updated) => {
                     // Inform all game room clients for the update
-                    updateStream(id);
+                    updateStream(id, req, res, next, true, false);
                 })
                 .catch(next);
         })
@@ -319,7 +312,7 @@ const placeShip = (req, res, next) => {
  * Updates all the clients of the specified game room
  * @param {String} gameId The game id
  */
-const updateStream = (gameId, req, res, next, participant = true) => {
+const updateStream = (gameId, req, res, next, participant = true, sendStream = true) => {
     // Retrieve the game ID and the stream
     const userId = req.user.id;
 
@@ -341,12 +334,15 @@ const updateStream = (gameId, req, res, next, participant = true) => {
                     // Add the client
                     currentStreamData.clients.push({ id: userId, participant });
                 }
-                // Initialize the stream for this client
-                currentStreamData.stream.init(req, res);
+                // // Initialize the stream for this client
+                // currentStreamData.stream.init(req, res);
                 // Update the inital state of Sse
                 currentStreamData.stream.updateInit(json);
-                // Notify the clients about the new data
-                currentStreamData.stream.send(json);
+                // Check if stream needs to be sent
+                if (sendStream) {
+                    // Notify the clients about the new data
+                    currentStreamData.stream.send(json);
+                }
 
             } else {
                 // Stream does not exists
@@ -361,8 +357,10 @@ const updateStream = (gameId, req, res, next, participant = true) => {
                 streams[gameId] = newStreamData;
                 // Initialize the stream for this client
                 newStreamData.stream.init(req, res);
-                // Notify the clients about the new data
-                newStreamData.stream.send(json);
+                if (sendStream) {
+                    // Notify the clients about the new data
+                    newStreamData.stream.send(json);
+                }
             }
         })
         .catch(next);
