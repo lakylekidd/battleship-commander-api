@@ -150,8 +150,8 @@ const createNewGameSession = (req, res, next) => {
  */
 const fire = (req, res, next) => {
     // Retrieve the required variables
-    const boardId = req.body.id
-    const tileIdx = req.body.index
+    const boardId = req.body.boardId
+    const tileIdx = req.body.tileIndex
     const thisUser = req.user.id
 
     // Retrieve the board
@@ -309,6 +309,19 @@ const join = (req, res, next) => {
         })
         .catch(next)
 }
+
+const ready = (req, res, next) => {
+    // Retrieve necessary variables
+    const { id, boardId } = req.params;
+    throw new Error("Not implemented exception");
+}
+
+const placeShip = (req, res, next) => {
+    // Retrieve necessary variables
+    const { boardId, tileIndex, shipSize, orientation } = req.body;
+    throw new Error("Not implemented exception");
+}
+
 // MAYBE UNECESSARY
 const exitGame = (req, res, next) => {
     // Retrieve required variables
@@ -354,4 +367,4 @@ const exitGame = (req, res, next) => {
 }
 
 // Export auth controller functions
-module.exports = { getAvailableGames, createNewGameSession, fire, gameStream, join, exitGame };
+module.exports = { ready, placeShip, getAvailableGames, createNewGameSession, fire, gameStream, join, exitGame };
