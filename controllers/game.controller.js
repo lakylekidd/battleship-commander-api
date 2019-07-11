@@ -193,7 +193,20 @@ const gameStream = (req, res, next) => {
     Game.findByPk(gameId, { include: [{ all: true, nested: true }] })
         .then(response => {
             stream.init(req, res)
-            const json = JSON.stringify(response)
+
+
+            // Retrieve usernames for user id's in the boards
+            const gameObjWithUsernames = response.boards.map(board => {
+                // Retrieve the username based on user id
+                return {
+                    ...board,
+                    username: User.findByPk(board.userId).then(user => user.username).catch(err => "unknown")
+                }
+            });
+
+
+
+            const json = JSON.stringify(gameObjWithUsernames)
             //Update the inital state of Sse
             stream.updateInit(json)
             //Notify the clients about the new data
