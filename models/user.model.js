@@ -18,6 +18,7 @@ const User = db.define('user', {
 
 // Define relationships
 User.hasMany(Game);
+Game.belongsTo(User);
 Board.belongsTo(Game);
 User.hasMany(Board);
 Board.belongsTo(User);
