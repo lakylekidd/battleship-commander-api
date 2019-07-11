@@ -16,7 +16,7 @@ router.post('/', auth, gameController.createNewGameSession);
 router.post('/:id', auth, gameController.fire);
 
 // The stream of the selected game. TODO: Check if POST or GET
-router.get('/:id/stream', gameController.gameStream);
+router.get('/:id/stream', auth, gameController.gameStream);
 
 // Allows user to join the specified game
 router.get('/:id/join', auth, gameController.join);
