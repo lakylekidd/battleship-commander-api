@@ -4,6 +4,7 @@ const Op = Sequelize.Op;
 const Game = require('./../models/game.model');
 const Board = require('./../models/board.model');
 const Tile = require('./../models/tile.model');
+const User = require('./../models/user.model');
 const Sse = require('json-sse');
 
 // Object that holds all the available streams
@@ -78,7 +79,10 @@ const generateTilesForBoard = (boardId) => {
  */
 const getAvailableGames = (req, res, next) => {
     // Get a list of all games where status is new
-    Game.findAll({ where: { gameState: 0 } })
+    Game.findAll({
+        include: [User],
+        where: { gameState: 0 }
+    })
         .then(games => {
             // Return the list of games
             return res.status(200).send({
