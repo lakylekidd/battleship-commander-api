@@ -1,6 +1,6 @@
 // Import required modules
 const Sequelize = require('sequelize');
-const db = require('./../../db');
+const db = require('./../db');
 const Board = require('./board.model');
 
 // Define a tile model
@@ -30,10 +30,6 @@ const Tile = db.define('tile', {
         timestamps: false
     }
 );
-
-// Define Relationships
-Tile.belongsTo(Board);
-
 
 // Export the model
 module.exports = Tile;

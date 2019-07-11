@@ -1,7 +1,6 @@
 // Import required modules
 const Sequelize = require('sequelize');
-const db = require('./../../db');
-const User = require('./user.model');
+const db = require('./../db');
 const Board = require('./board.model');
 
 // Define a game model
@@ -25,7 +24,6 @@ const Game = db.define('game', {
 );
 
 // Define Relationships
-Game.belongsTo(User);
 Game.hasMany(Board);
 
 // Export the model
