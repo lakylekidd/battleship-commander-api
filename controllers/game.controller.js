@@ -1,7 +1,6 @@
 // Import required modules
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
-const User = require('./../models/user.model');
 const Game = require('./../models/game.model');
 const Board = require('./../models/board.model');
 const Tile = require('./../models/tile.model');
@@ -144,42 +143,52 @@ const createNewGameSession = (req, res, next) => {
  * towards his opponent.
  */
 const fire = (req, res, next) => {
+    // Retrieve the required variables
     const boardId = req.body.id
     const tileIdx = req.body.index
     const thisUser = req.user.id
 
-    // Check if user is part of this game
-    Board
-        .findByPk(boardId)
+    // Retrieve the board
+    Board.findByPk(boardId, { include: [{ all: true, nested: true }] })
         .then(board => {
-            //Check if Im not the owner of that board
-            if (board.userId !== thisUser) {
-                //Check If there is a board in that game where I am part of-
-                Board.findOne({
+            // Check if it's actually the usern's turn to play
+            if (board.userTurn !== thisUser) return res.status(400).send({
+                message: "It's not your turn to play! Wait for your turn!"
+            });
+
+            // If it's user's turn then set the tile to fire
+            // but only if tile has not been fired upon yet
+            Tile.update(
+                { targeted: true },
+                {
+                    returning: true,
                     where: {
-                        gameId: board.gameId,
-                        userId: thisUser
+                        index: tileIdx,
+                        boardId: boardId,
+                        targeted: false
                     }
-                })
-                    .then(result => {
-                        if (result) {
-                            Tile
-                                .findOne({
-                                    where: {
-                                        boardId: boardId,
-                                        index: tileIdx
-                                    }
-                                })
-                                .then(tile => {
-                                    tile.update({ targeted: true })
-                                    res.send({ message: "Tile Targeted!" })
-                                })
-                        }
+                }
+            ).then((result, updated) => {
+                // Retrieve opponent ID
+                const opponentId = board.game.boards.find(board => board.user.id !== thisUser);
+
+                // Update the board turn to opponent
+                Game.update(
+                    { userTurn: opponentId },
+                    {
+                        where: { id: gameId }
+                    }
+                )
+                    .then(resul => {
+                        // Return the result
+                        res.status(200).send({
+                            message: "Target hit!"
+                        })
                     })
-                    .catch(next)
-            }
+                    .catch(next);
+            })
         })
-        .catch(next)
+        .catch(next);
 }
 
 const stream = new Sse(null)

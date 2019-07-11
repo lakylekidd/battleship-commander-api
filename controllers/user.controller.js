@@ -1,6 +1,7 @@
 // Import required modules
 const jwt = require('./../helpers/jwt');
-const User = require('./../models/user.model');
+const db = require('./../db');
+const User = require('./../models/user.model')(db);
 
 // Generates a new token
 const generateToken = (userId, username) => {
