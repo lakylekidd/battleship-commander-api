@@ -18,7 +18,9 @@ const User = db.define('user', {
 
 // Define relationships
 User.hasMany(Game);
+Board.belongsTo(Game);
 User.hasMany(Board);
+Board.belongsTo(User);
 
 // Export the model
 module.exports = User;
