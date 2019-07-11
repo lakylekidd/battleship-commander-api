@@ -32,7 +32,8 @@ const loginOrRegister = (req, res, next) => {
                         // Set status 201 :: user created
                         return res.status(201).send({
                             // Generate the token and return it
-                            jwt: generateToken(u.id, username)
+                            jwt: generateToken(u.id, username),
+                            userId: u.id
                         });
                     })
                     .catch(err => {
