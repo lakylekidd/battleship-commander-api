@@ -21,5 +21,8 @@ router.get('/:id/stream', gameController.gameStream);
 // Allows user to join the specified game
 router.get('/:id/join', auth, gameController.join);
 
+// Set the board status to Ready.
+router.post('/:id/ready', gameController.ready)
+
 // Export the router
 module.exports = router;

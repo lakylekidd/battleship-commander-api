@@ -256,5 +256,12 @@ const join = (req, res, next) => {
         .catch(next)
 }
 
+/**
+ * Function to set the board status to Ready.
+ */
+const ready = (req, res, next) => {
+
+}
+
 // Export auth controller functions
-module.exports = { getAvailableGames, createNewGameSession, fire, gameStream, join };
+module.exports = { getAvailableGames, createNewGameSession, fire, gameStream, join, ready };
