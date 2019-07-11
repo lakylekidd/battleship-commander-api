@@ -214,49 +214,9 @@ const fire = (req, res, next) => {
 const gameStream = (req, res, next) => {
     // Retrieve the game ID and the stream
     const gameId = req.params.id
-    const userId = req.user.id;
-
-    // Locate the game and send it to the given stream
-    Game
-        .findByPk(gameId, { include: [{ all: true, nested: true }] })
-        .then(game => {
-            // Get the current game stream
-            const currentStreamData = streams[gameId];
-            // Stringify the game object
-            const json = JSON.stringify(game);
-
-            // Check if the stream exists
-            if (currentStreamData) {
-                // Stream exists
-                // Check if the client is already a member of the stream
-                if (!currentStreamData.clients.includes(id => userId)) {
-                    // Client is not part of the clients
-                    // Add the client
-                    currentStreamData.clients.push(userId);
-                }
-                // Initialize the stream for this client
-                currentStreamData.stream.init(req, res);
-                // Update the inital state of Sse
-                currentStreamData.stream.updateInit(json);
-                // Notify the clients about the new data
-                currentStreamData.stream.send(json);
-
-            } else {
-                // Stream does not exists
-                // Create it
-                const newStreamData = {
-                    clients: [userId],
-                    stream: new Sse(json)
-                }
-                // Add the streams to the streams object
-                streams[gameId] = newStreamData;
-                // Initialize the stream for this client
-                newStreamData.stream.init(req, res);
-                // Notify the clients about the new data
-                newStreamData.stream.send(json);
-            }
-        })
-        .catch(next);
+    const participant = req.headers.asParticipant || true;
+    // Update the current game room stream
+    updateStream(gameId, req, res, next, participant);
 }
 /**
  * Action that allows a player to join a new game
@@ -316,7 +276,35 @@ const join = (req, res, next) => {
 const ready = (req, res, next) => {
     // Retrieve necessary variables
     const { id, boardId } = req.params;
-    throw new Error("Not implemented exception");
+    const userId = req.user.id;
+    // Retrieve the required board
+    Board.findByPk(boardId)
+        .then(board => {
+            // Check if a board was found
+            if (!board) return res.status(404).res({
+                message: `The battle board with id ${boardId} was not found.`
+            });
+
+            // Check if the user is the owner of this board
+            if (board.userId !== userId) return res.status(401).res({
+                message: `You do not have permission to modify this board.`
+            });
+
+            // Update the state of the board
+            Board.update(
+                { ready: true },
+                {
+                    returning: true,
+                    where: { id: boardId }
+                }
+            )
+                .then((result, updated) => {
+                    // Inform all game room clients for the update
+                    updateStream(id);
+                })
+                .catch(next);
+        })
+        .catch(next);
 }
 /**
  * Places a ship on the specified board and tile 
@@ -326,6 +314,58 @@ const placeShip = (req, res, next) => {
     // Retrieve necessary variables
     const { boardId, tileIndex, shipSize, orientation } = req.body;
     throw new Error("Not implemented exception");
+}
+/**
+ * Updates all the clients of the specified game room
+ * @param {String} gameId The game id
+ */
+const updateStream = (gameId, req, res, next, participant = true) => {
+    // Retrieve the game ID and the stream
+    const userId = req.user.id;
+
+    // Locate the game and send it to the given stream
+    Game
+        .findByPk(gameId, { include: [{ all: true, nested: true }] })
+        .then(game => {
+            // Get the current game stream
+            const currentStreamData = streams[gameId];
+            // Stringify the game object
+            const json = JSON.stringify(game);
+
+            // Check if the stream exists
+            if (currentStreamData) {
+                // Stream exists
+                // Check if the client is already a participant member of the stream
+                if (!currentStreamData.clients.includes(client => client.id === userId)) {
+                    // Client is not part of the clients
+                    // Add the client
+                    currentStreamData.clients.push({ id: userId, participant });
+                }
+                // Initialize the stream for this client
+                currentStreamData.stream.init(req, res);
+                // Update the inital state of Sse
+                currentStreamData.stream.updateInit(json);
+                // Notify the clients about the new data
+                currentStreamData.stream.send(json);
+
+            } else {
+                // Stream does not exists
+                // Create it
+                const newStreamData = {
+                    clients: [
+                        { id: userId, participant }
+                    ],
+                    stream: new Sse(json)
+                }
+                // Add the streams to the streams object
+                streams[gameId] = newStreamData;
+                // Initialize the stream for this client
+                newStreamData.stream.init(req, res);
+                // Notify the clients about the new data
+                newStreamData.stream.send(json);
+            }
+        })
+        .catch(next);
 }
 
 // MAYBE UNECESSARY

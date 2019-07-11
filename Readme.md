@@ -41,6 +41,7 @@ These are the available endpoints of the API `@root : http://mywebsite.com`.
     **Body**: `{ boardId, tileIndex, shipSize, orientation }`.  
     Places a ship on the specified board and tile index of the user at a specified orientation.
 * **GET @root/games/:id/stream**:  
+    **Headers**: `{ Authorization, AsParticipant `*(optional: defaults to true)*` }`.  
     The stream of the selected game. Allows players to join an existing game.
 * **GET @root/games/:id/join**:  
     Allows a user to join the game. Will create a second board in the game and assign the requesting user as the board owner.
