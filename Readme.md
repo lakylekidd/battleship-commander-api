@@ -38,7 +38,7 @@ These are the available endpoints of the API `@root : http://mywebsite.com`.
     **Body**: `{ boardId, tileIndex }`.  
     Accepts fire acctions from players. These actions convert a tile as targeted.
 * **POST @root/games/:id/place-ship**:  
-    **Body**: `{ boardId, tileIndex, shipSize, orientation }`.  
+    **Body**: `{ boardId, tileId, shipSize, orientation }`.  
     Places a ship on the specified board and tile index of the user at a specified orientation.
 * **GET @root/games/:id/stream**:  
     **Headers**: `{ Authorization, AsParticipant `*(optional: defaults to true)*` }`.  

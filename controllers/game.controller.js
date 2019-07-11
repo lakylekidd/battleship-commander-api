@@ -294,6 +294,8 @@ const ready = (req, res, next) => {
                 .then((result, updated) => {
                     // Inform all game room clients for the update
                     updateStream(id, req, res, next, true, false);
+                    // Return success
+                    return res.status(200);
                 })
                 .catch(next);
         })
@@ -305,8 +307,47 @@ const ready = (req, res, next) => {
  */
 const placeShip = (req, res, next) => {
     // Retrieve necessary variables
-    const { boardId, tileIndex, shipSize, orientation } = req.body;
-    throw new Error("Not implemented exception");
+    const { boardId, tileId, shipSize, orientation } = req.body;
+    // Retrieve the required tile
+    Tile.findByPk(tileId, { include: [{ all: true, nested: true }] })
+        .then(tile => {
+            // Check if a board was found
+            if (!tile) return res.status(404).res({
+                message: `The battle board tile with id ${tileId} was not found.`
+            });
+
+            // Check if the user is the owner of this board
+            if (tile.board.userId !== userId) return res.status(401).res({
+                message: `You do not have permission to modify this board tile.`
+            });
+
+            // Check if tile belongs to determined board
+            if (tile.boardId !== boardId) return res.status(400).res({
+                message: `This game board tile does not belong to the predetermined board.`
+            });
+
+            // Retrieve current value of the tile
+            const val = tile.occupied;
+
+            // Update the tile
+            Tile.update(
+                { occupied: !val },
+                {
+                    returning: true,
+                    where: { id: tileId }
+                }
+            )
+                .then((result, updated) => {
+                    // Update the stream
+                    updateStream(gameId, req, res, next, true, false);
+                    // Return success
+                    return res.status(200).send({
+                        message: `Game board tile ${val ? 'occupied' : 'unoccupied'}`
+                    })
+                })
+                .catch(next);
+        })
+        .catch(next);
 }
 /**
  * Updates all the clients of the specified game room
