@@ -193,29 +193,11 @@ const gameStream = (req, res, next) => {
     Game.findByPk(gameId, { include: [{ all: true, nested: true }] })
         .then(response => {
             stream.init(req, res)
-            // Retrieve usernames for user id's in the boards
-            const gameObjWithUsernames = response.boards.map(board => {
-                // First search the username
-                let username = '';
-                User.findByPk(board.userId)
-                    .then(user => { username = user.username })
-                    .catch(err => { username = "unknown" });
-                // Retrieve the username based on user id
-                return {
-                    ...board,
-                    username
-                }
-            });
-            // Await all promises to resolve before sending the stream
-            Promise.all(gameObjWithUsernames).then(result => {
-                console.log(result);
-                const json = JSON.stringify(result)
-                //Update the inital state of Sse
-                stream.updateInit(json)
-                //Notify the clients about the new data
-                stream.send(json);
-            })
-                .catch(next);
+            const json = JSON.stringify(response)
+            //Update the inital state of Sse
+            stream.updateInit(json)
+            //Notify the clients about the new data
+            stream.send(json);
         })
         .catch(next)
 }
