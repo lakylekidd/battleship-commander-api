@@ -4,7 +4,13 @@ const Op = Sequelize.Op;
 const Game = require('./../models/game.model');
 const Board = require('./../models/board.model');
 const Tile = require('./../models/tile.model');
-const Sse = require('json-sse')
+const Sse = require('json-sse');
+
+// Object that holds all the available streams
+// Based on the stream index which is defined
+// by the game id
+const streams = {
+}
 
 /// Constant Game States
 const gameStates = {
@@ -179,10 +185,21 @@ const fire = (req, res, next) => {
                         where: { id: gameId }
                     }
                 )
-                    .then(resul => {
-                        // Return the result
-                        res.status(200).send({
-                            message: "Target hit!"
+                    .then((resul, updated) => {
+                        // Return the streamed game
+                        Game.findByPk(gameId).then(game => {
+                            // Stringify the game
+                            const json = JSON.stringify(game)
+                            // Retrieve the stream of the game
+                            const stream = streams[gameId];
+                            // Update the inital state of Sse
+                            stream.updateInit(json)
+                            // MAYBE UNCOMMENT
+                            // // Notify the clients about the new data
+                            // stream.send(json);
+                            return res.status(200).send({
+                                message: "Target hit!"
+                            })
                         })
                     })
                     .catch(next);
@@ -190,26 +207,56 @@ const fire = (req, res, next) => {
         })
         .catch(next);
 }
-
-const stream = new Sse(null)
 /**
  * Action that allows a player to subscribe to the game stream
  * just like the chat app sends all new messages to everybody
  */
 const gameStream = (req, res, next) => {
-
+    // Retrieve the game ID and the stream
     const gameId = req.params.id
+    const userId = req.user.id;
 
-    Game.findByPk(gameId, { include: [{ all: true, nested: true }] })
-        .then(response => {
-            stream.init(req, res)
-            const json = JSON.stringify(response)
-            //Update the inital state of Sse
-            stream.updateInit(json)
-            //Notify the clients about the new data
-            stream.send(json);
+    // Locate the game and send it to the given stream
+    Game
+        .findByPk(gameId, { include: [{ all: true, nested: true }] })
+        .then(game => {
+            // Get the current game stream
+            const currentStreamData = streams[gameId];
+            // Stringify the game object
+            const json = JSON.stringify(game);
+
+            // Check if the stream exists
+            if (currentStreamData) {
+                // Stream exists
+                // Check if the client is already a member of the stream
+                if (!currentStreamData.clients.includes(id => userId)) {
+                    // Client is not part of the clients
+                    // Add the client
+                    currentStreamData.clients.push(userId);
+                }
+                // Initialize the stream for this client
+                currentStreamData.stream.init(req, res);
+                // Update the inital state of Sse
+                currentStreamData.stream.updateInit(json);
+                // Notify the clients about the new data
+                currentStreamData.stream.send(json);
+
+            } else {
+                // Stream does not exists
+                // Create it
+                const newStreamData = {
+                    clients: [userId],
+                    stream: new Sse(json)
+                }
+                // Add the streams to the streams object
+                streams[gameId] = newStreamData;
+                // Initialize the stream for this client
+                currentStreamData.stream.init(req, res);
+                // Notify the clients about the new data
+                currentStreamData.stream.send(json);
+            }
         })
-        .catch(next)
+        .catch(next);
 }
 /**
  * Action that allows a player to join a new game
@@ -262,7 +309,7 @@ const join = (req, res, next) => {
         })
         .catch(next)
 }
-
+// MAYBE UNECESSARY
 const exitGame = (req, res, next) => {
     // Retrieve required variables
     const gameId = req.params.id;
