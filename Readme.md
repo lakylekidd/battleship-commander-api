@@ -52,3 +52,4 @@ These are the available endpoints of the API `@root : http://mywebsite.com`.
 ## TODOS
 This is a list of todos for the current development of this project.
 * When user logs in and clicks on join game, he should be able to rejoin any games he abandoned.
+* When placing a ship determine the size of the ship and the orientation
