@@ -81,7 +81,10 @@ const getAvailableGames = (req, res, next) => {
     // Get a list of all games where status is new
     Game.findAll({
         include: [User],
-        where: { gameState: 0 }
+        where:
+        {
+            gameState: gameStates.new,
+        }
     })
         .then(games => {
             // Return the list of games
