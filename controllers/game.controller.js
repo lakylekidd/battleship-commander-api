@@ -373,29 +373,22 @@ const updateStream = (gameId, req, res, next, participant = true, sendStream = t
             // Stringify the game object
             const json = JSON.stringify(game);
 
-            console.log("Found game")
-
             // Check if the stream exists
             if (currentStreamData) {
-                console.log("Stream already exists")
                 // Stream exists
                 // Check if the client is already a participant member of the stream
                 if (!currentStreamData.clients.includes(client => client.id === userId)) {
                     // Client is not part of the clients
                     // Add the client
                     currentStreamData.clients.push({ id: userId, participant });
-                    console.log("Add client to clients slist")
                 }
                 // Initialize the stream for this client
                 currentStreamData.stream.init(req, res);
                 // Update the inital state of Sse
                 currentStreamData.stream.updateInit(json);
-                console.log("Update stream")
 
                 // Check if stream needs to be sent
                 if (sendStream) {
-                    console.log("send stream")
-
                     // Notify the clients about the new data
                     currentStreamData.stream.send(json);
                 }
