@@ -313,9 +313,10 @@ const ready = (req, res, next) => {
  * index of the user at a specified orientation.
  */
 const placeShip = (req, res, next) => {
-    console.log("Code Reached")
     // Retrieve necessary variables
     const { boardId, tileId, shipSize, orientation } = req.body;
+    const userId = req.user.id;
+
     // Retrieve the required tile
     Tile.findByPk(tileId, { include: [{ all: true, nested: true }] })
         .then(tile => {
@@ -323,8 +324,6 @@ const placeShip = (req, res, next) => {
             if (!tile) return res.status(404).res({
                 message: `The battle board tile with id ${tileId} was not found.`
             });
-
-            console.log("Tile Found")
 
             // Check if the user is the owner of this board
             if (tile.board.userId !== userId) return res.status(401).res({

@@ -12,11 +12,9 @@ const User = require('./../models/user.model');
 const authenticate = (req, res, next) => {
     // Request the headers to find the authorization
     const auth = req.headers.authorization && req.headers.authorization.split(' ');
-    console.log("Authenticating");
     // Check if there is a bearer authorization included
     if (auth && auth[0] === 'Bearer' && auth[1]) {
         try {
-            console.log("Token found ", auth[1]);
             // Decrypt the data from the token
             const data = jwt.toData(auth[1]);
             // Locate the user record by id
@@ -31,7 +29,6 @@ const authenticate = (req, res, next) => {
                 .catch(next);
 
         } catch (error) {
-            console.log(error)
             // User authorization details invalid
             res.status(400).send({
                 message: `Error ${error.name}: ${error.message}`
