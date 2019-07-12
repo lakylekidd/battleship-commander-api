@@ -321,17 +321,17 @@ const placeShip = (req, res, next) => {
     Tile.findByPk(tileId, { include: [{ all: true, nested: true }] })
         .then(tile => {
             // Check if a board was found
-            if (!tile) return res.status(404).res({
+            if (!tile) return res.status(404).send({
                 message: `The battle board tile with id ${tileId} was not found.`
             });
 
             // Check if the user is the owner of this board
-            if (tile.board.userId !== userId) return res.status(401).res({
+            if (tile.board.userId !== userId) return res.status(401).send({
                 message: `You do not have permission to modify this board tile.`
             });
 
             // Check if tile belongs to determined board
-            if (tile.boardId !== boardId) return res.status(400).res({
+            if (tile.board.id !== boardId) return res.status(400).send({
                 message: `This game board tile does not belong to the predetermined board.`
             });
 
