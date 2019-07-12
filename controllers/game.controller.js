@@ -158,7 +158,7 @@ const createNewGameSession = (req, res, next) => {
 const fire = (req, res, next) => {
     // Retrieve the required variables
     const boardId = req.body.boardId
-    const tileIdx = req.body.tileIndex
+    const tileId = req.body.tileId
     const thisUser = req.user.id
 
     // Retrieve the board
@@ -176,7 +176,7 @@ const fire = (req, res, next) => {
                 {
                     returning: true,
                     where: {
-                        index: tileIdx,
+                        index: tileId,
                         boardId: boardId,
                         targeted: false
                     }

@@ -35,7 +35,7 @@ These are the available endpoints of the API `@root : http://mywebsite.com`.
     **Data**: `null`  
     Creates a new game and assigns the requesting user as the game owner.
 * **POST @root/games/:id/fire**:  
-    **Body**: `{ boardId, tileIndex }`.  
+    **Body**: `{ boardId, tileId }`.  
     Accepts fire acctions from players. These actions convert a tile as targeted.
 * **POST @root/games/:id/place-ship**:  
     **Body**: `{ boardId, tileId, shipSize, orientation }`.  
