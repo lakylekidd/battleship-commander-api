@@ -352,9 +352,9 @@ const placeShip = (req, res, next) => {
                     // Update the stream
                     updateStream(tile.board.game.id, req, res, next, true, false);
                     // Return success
-                    return res.status(200).send({
-                        message: `Game board tile ${val ? 'occupied' : 'unoccupied'}`
-                    })
+                    // return res.status(200).send({
+                    //     message: `Game board tile ${val ? 'occupied' : 'unoccupied'}`
+                    // })
                 })
                 .catch(next);
         })
