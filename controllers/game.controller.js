@@ -386,8 +386,8 @@ const updateStream = (gameId, req, res, next, participant = true, sendStream = t
                     currentStreamData.clients.push({ id: userId, participant });
                     console.log("Add client to clients slist")
                 }
-                // // Initialize the stream for this client
-                // currentStreamData.stream.init(req, res);
+                // Initialize the stream for this client
+                currentStreamData.stream.init(req, res);
                 // Update the inital state of Sse
                 currentStreamData.stream.updateInit(json);
                 console.log("Update stream")
