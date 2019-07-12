@@ -317,6 +317,8 @@ const placeShip = (req, res, next) => {
     const { boardId, tileId, shipSize, orientation } = req.body;
     const userId = req.user.id;
 
+    console.log("Variables: ", boardId, "Tile ID: ", tileId);
+
     // Retrieve the required tile
     Tile.findByPk(tileId, { include: [{ all: true, nested: true }] })
         .then(tile => {
@@ -348,7 +350,7 @@ const placeShip = (req, res, next) => {
             )
                 .then((result, updated) => {
                     // Update the stream
-                    updateStream(gameId, req, res, next, true, false);
+                    updateStream(tile.board.game.id, req, res, next, true, false);
                     // Return success
                     return res.status(200).send({
                         message: `Game board tile ${val ? 'occupied' : 'unoccupied'}`
