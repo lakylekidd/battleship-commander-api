@@ -342,7 +342,7 @@ const placeShip = (req, res, next) => {
 
             // Update the tile
             Tile.update(
-                { occupied: !val },
+                { occupied: true },
                 {
                     returning: true,
                     where: { id: tileId }
