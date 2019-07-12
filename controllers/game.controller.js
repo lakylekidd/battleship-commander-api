@@ -183,9 +183,7 @@ const fire = (req, res, next) => {
                 {
                     returning: true,
                     where: {
-                        index: tileId,
-                        boardId: boardId,
-                        targeted: false
+                        id: tileId
                     }
                 }
             )
