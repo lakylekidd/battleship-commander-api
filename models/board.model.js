@@ -21,6 +21,7 @@ const Board = db.define('board', {
 
 // Define Relationships
 Board.hasMany(Tile);
+Tile.belongsTo(Board);
 
 
 // Export the model
