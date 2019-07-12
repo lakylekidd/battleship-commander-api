@@ -317,7 +317,6 @@ const placeShip = (req, res, next) => {
     const { boardId, tileId, shipSize, orientation } = req.body;
     const userId = req.user.id;
 
-    console.log("Variables: ", boardId, "Tile ID: ", tileId);
 
     // Retrieve the required tile
     Tile.findByPk(tileId, { include: [{ all: true, nested: true }] })
@@ -352,6 +351,7 @@ const placeShip = (req, res, next) => {
                     // Update the stream
                     updateStream(tile.board.game.id, req, res, next, true, false);
                     // Return success
+                    return res.send()
                     // return res.status(200).send({
                     //     message: `Game board tile ${val ? 'occupied' : 'unoccupied'}`
                     // })
@@ -376,6 +376,11 @@ const updateStream = (gameId, req, res, next, participant = true, sendStream = t
             const currentStreamData = streams[gameId];
             // Stringify the game object
             const json = JSON.stringify(game);
+            
+            const board1 = game.dataValues.boards[0]
+            const tile1 = board1.tiles.find(tile => tile.index === 0)
+            const pretty = JSON.stringify(tile1, null, 2)
+            console.log("pretty test:", pretty)
 
             // Check if the stream exists
             if (currentStreamData) {
@@ -386,17 +391,16 @@ const updateStream = (gameId, req, res, next, participant = true, sendStream = t
                     // Add the client
                     currentStreamData.clients.push({ id: userId, participant });
                 }
-                // Initialize the stream for this client
-                currentStreamData.stream.init(req, res);
                 // Update the inital state of Sse
                 currentStreamData.stream.updateInit(json);
 
-                // Check if stream needs to be sent
+                // Initialize the stream for this client
                 if (sendStream) {
+                    currentStreamData.stream.init(req, res);    
+                } else {
                     // Notify the clients about the new data
                     currentStreamData.stream.send(json);
                 }
-
             } else {
                 // Stream does not exists
                 // Create it
@@ -409,10 +413,11 @@ const updateStream = (gameId, req, res, next, participant = true, sendStream = t
                 // Add the streams to the streams object
                 streams[gameId] = newStreamData;
                 // Initialize the stream for this client
-                newStreamData.stream.init(req, res);
                 if (sendStream) {
                     // Notify the clients about the new data
-                    newStreamData.stream.send(json);
+                    newStreamData.stream.init(req, res);
+                } else {
+                     newStreamData.stream.send(json);
                 }
             }
         })
