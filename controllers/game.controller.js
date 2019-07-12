@@ -161,11 +161,18 @@ const fire = (req, res, next) => {
     const tileId = req.body.tileId
     const thisUser = req.user.id
 
+    console.log('Fire reached')
+    console.log(boardId, tileId, thisUser)
+
+
     // Retrieve the board
     Board.findByPk(boardId, { include: [{ all: true, nested: true }] })
         .then(board => {
+
+            console.log('Board Found', thisUser, board.game.userTurn)
+
             // Check if it's actually the usern's turn to play
-            if (board.userTurn !== thisUser) return res.status(400).send({
+            if (board.game.userTurn !== thisUser) return res.status(400).send({
                 message: "It's not your turn to play! Wait for your turn!"
             });
 
@@ -183,25 +190,29 @@ const fire = (req, res, next) => {
                 }
             )
                 .then((result, updated) => {
-                    // Retrieve opponent ID
-                    const opponentId = board.game.boards.find(board => board.user.id !== thisUser);
+                    
+                    Game.findByPk(req.params.id, { include: [Board]})
+                        .then(game => {
+                            // Retrieve opponent ID
+                            const opponentId = game.boards.find(board => board.userId !== thisUser).userId;
+                            // Update the board turn to opponent
+                            Game.update(
+                                { userTurn: opponentId },
+                                {
+                                    returning: true,
+                                    where: { id: game.id }
+                                }
+                            )
+                                .then((resul, updated) => {
+                                    // Update the stream
+                                    updateStream(game.id, req, res, next, true, false);
+                                    // Respond success
+                                    return res.send()
+                                })
+                                .catch(next);
+                                })
 
-                    // Update the board turn to opponent
-                    Game.update(
-                        { userTurn: opponentId },
-                        {
-                            where: { id: gameId }
-                        }
-                    )
-                        .then((resul, updated) => {
-                            // Update the stream
-                            updateStream(gameId, req, res, next, true, false);
-                            // Respond success
-                            return res.status(200).send({
-                                message: "Target hit!"
-                            })
-                        })
-                        .catch(next);
+                    
                 })
                 .catch(next);
         })
@@ -302,7 +313,7 @@ const ready = (req, res, next) => {
                     // Inform all game room clients for the update
                     updateStream(id, req, res, next, true, false);
                     // Return success
-                    return res.status(200);
+                    return res.send();
                 })
                 .catch(next);
         })
@@ -376,11 +387,6 @@ const updateStream = (gameId, req, res, next, participant = true, sendStream = t
             const currentStreamData = streams[gameId];
             // Stringify the game object
             const json = JSON.stringify(game);
-            
-            const board1 = game.dataValues.boards[0]
-            const tile1 = board1.tiles.find(tile => tile.index === 0)
-            const pretty = JSON.stringify(tile1, null, 2)
-            console.log("pretty test:", pretty)
 
             // Check if the stream exists
             if (currentStreamData) {
